@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
+import RequireAuth from "./components/RequireAuth";
 import Home from "./pages/Home";
 import SsnPage from "./pages/SsnPage";
 import Auditor from "./pages/Auditor";
@@ -11,7 +12,9 @@ import Registration from "./pages/Registration";
 import NotFound from "./pages/NotFound";
 
 function App() {
-  const { currentUser, logout } = useContext(AuthContext);
+  const { currentUser, logout, loading } = useContext(AuthContext);
+  const isAuditorOrAdmin = currentUser?.role === "Auditor" || currentUser?.role === "Admin";
+  const isCustomerOrAdmin = currentUser?.role === "Customer" || currentUser?.role === "Admin";
 
   const handleLogout = () => {
     logout();
@@ -42,16 +45,20 @@ function App() {
                       📋 SSN Management
                     </NavLink>
                   </li>
-                  <li className="nav-item">
-                    <NavLink className="nav-link" to="/auditor">
-                      🔍 Auditor
-                    </NavLink>
-                  </li>
-                  <li className="nav-item">
-                    <NavLink className="nav-link" to="/customer">
-                      👤 Customer
-                    </NavLink>
-                  </li>
+                  {isAuditorOrAdmin && (
+                    <li className="nav-item">
+                      <NavLink className="nav-link" to="/auditor">
+                        🔍 Auditor
+                      </NavLink>
+                    </li>
+                  )}
+                  {isCustomerOrAdmin && (
+                    <li className="nav-item">
+                      <NavLink className="nav-link" to="/customer">
+                        👤 Customer
+                      </NavLink>
+                    </li>
+                  )}
                   <li className="nav-item">
                     <NavLink className="nav-link" to="/records">
                       📁 Records
@@ -73,7 +80,7 @@ function App() {
                   </li>
                 </>
               )}
-              {!currentUser && (
+              {!currentUser && !loading && (
                 <>
                   <li className="nav-item">
                     <NavLink className="nav-link" to="/login">
@@ -94,14 +101,38 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-        {currentUser && (
-          <>
-            <Route path="/ssn" element={<SsnPage />} />
-            <Route path="/auditor" element={<Auditor />} />
-            <Route path="/customer" element={<Customer />} />
-            <Route path="/records" element={<Records />} />
-          </>
-        )}
+        <Route
+          path="/ssn"
+          element={
+            <RequireAuth>
+              <SsnPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/auditor"
+          element={
+            <RequireAuth allowedRoles={["Auditor", "Admin"]}>
+              <Auditor />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/customer"
+          element={
+            <RequireAuth allowedRoles={["Customer", "Admin"]}>
+              <Customer />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/records"
+          element={
+            <RequireAuth>
+              <Records />
+            </RequireAuth>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Registration />} />
         <Route path="*" element={<NotFound />} />

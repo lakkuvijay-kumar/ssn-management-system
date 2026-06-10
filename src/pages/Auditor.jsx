@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAllSSNRecords } from "../utils/helpers";
 
 export default function Auditor() {
   const [records, setRecords] = useState([]);
@@ -11,8 +12,7 @@ export default function Auditor() {
   };
 
   const loadRecords = () => {
-    const saved = JSON.parse(localStorage.getItem("ssnList")) || [];
-    setRecords(saved);
+    setRecords(getAllSSNRecords());
   };
 
   useEffect(() => {

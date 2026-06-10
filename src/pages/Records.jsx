@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAllSSNRecords, maskSSN } from "../utils/helpers";
 
 export default function Records() {
   const [records, setRecords] = useState([]);
   const navigate = useNavigate();
 
   const loadRecords = () => {
-    const saved = JSON.parse(localStorage.getItem("ssnList")) || [];
-    setRecords(saved);
+    setRecords(getAllSSNRecords());
   };
 
   useEffect(() => {
@@ -46,7 +46,6 @@ export default function Records() {
                     <th>#</th>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>SSN</th>
                     <th>Masked SSN</th>
                     <th>Date of Birth</th>
                     <th>Department</th>
@@ -60,8 +59,7 @@ export default function Records() {
                       <td>{index + 1}</td>
                       <td>{item.name}</td>
                       <td>{item.email || "-"}</td>
-                      <td>{item.original}</td>
-                      <td>{item.masked}</td>
+                      <td>{item.masked || maskSSN(item.original)}</td>
                       <td>{item.dob}</td>
                       <td>{item.department || "-"}</td>
                       <td>{item.recordDate || "-"}</td>

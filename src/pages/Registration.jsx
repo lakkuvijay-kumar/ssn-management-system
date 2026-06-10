@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { isValidEmail, getAllUsers, saveUsers } from "../utils/helpers";
 
 export default function Registration() {
+  const { login } = useContext(AuthContext);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,10 +21,9 @@ export default function Registration() {
     if (!firstName) newErrors.firstName = "First name is required";
     if (!lastName) newErrors.lastName = "Last name is required";
     if (!email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
+    else if (!isValidEmail(email)) newErrors.email = "Email is invalid";
     else {
-      // Check for duplicate email
-      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const users = getAllUsers();
       if (users.find((u) => u.email === email)) {
         newErrors.email = "This email is already registered. Please use a different email or login.";
       }
@@ -57,10 +59,10 @@ export default function Registration() {
       createdAt: new Date().toISOString(),
     };
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+    const users = getAllUsers();
     users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
-    localStorage.setItem("currentUser", JSON.stringify(newUser));
+    saveUsers(users);
+    login(newUser);
 
     setMessages([{ text: "Registration successful! Redirecting to home...", type: "success" }]);
     setTimeout(() => navigate("/"), 1500);

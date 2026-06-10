@@ -1,23 +1,30 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { getAllSSNRecords } from "../utils/helpers";
 
 export default function Customer() {
   const [records, setRecords] = useState([]);
   const navigate = useNavigate();
+  const { currentUser } = useContext(AuthContext);
   const customerConfig = {
     title: "Customer Page",
-    description: "Customers can view their SSN records with masked values for privacy.",
-    note: "Full SSN is hidden for customer access; only masked SSN is visible.",
+    description: "Customers can view their own SSN records with masked values for privacy.",
+    note: "Full SSN is hidden for customer access; only the logged-in customer's records are shown.",
   };
 
   const loadRecords = () => {
-    const saved = JSON.parse(localStorage.getItem("ssnList")) || [];
-    setRecords(saved);
+    const allRecords = getAllSSNRecords();
+    if (currentUser?.role === "Customer") {
+      setRecords(allRecords.filter((item) => item.email === currentUser.email));
+    } else {
+      setRecords(allRecords);
+    }
   };
 
   useEffect(() => {
     loadRecords();
-  }, []);
+  }, [currentUser]);
 
   return (
     <div className="container mt-5">

@@ -17,7 +17,7 @@ export default function Home() {
                   🔐 SSN Management System
                 </h1>
                 <p className="text-center text-muted mb-5" style={{ fontSize: "1.1rem" }}>
-                  Secure Social Security Number Management & Auditing Platform
+                  Secure SSN record management with role-based access for auditors, customers, and administrators.
                 </p>
 
                 {currentUser ? (
@@ -42,26 +42,30 @@ export default function Home() {
                           📋 Manage SSN Records
                         </button>
                       </div>
-                      <div className="col-md-6">
-                        <button
-                          type="button"
-                          onClick={() => navigate("/auditor")}
-                          className="btn btn-warning btn-lg w-100"
-                          style={{ borderRadius: "8px", cursor: "pointer" }}
-                        >
-                          🔍 Auditor View
-                        </button>
-                      </div>
-                      <div className="col-md-6">
-                        <button
-                          type="button"
-                          onClick={() => navigate("/customer")}
-                          className="btn btn-info btn-lg w-100"
-                          style={{ borderRadius: "8px", cursor: "pointer" }}
-                        >
-                          👤 Customer View
-                        </button>
-                      </div>
+                      {currentUser?.role === "Auditor" || currentUser?.role === "Admin" ? (
+                        <div className="col-md-6">
+                          <button
+                            type="button"
+                            onClick={() => navigate("/auditor")}
+                            className="btn btn-warning btn-lg w-100"
+                            style={{ borderRadius: "8px", cursor: "pointer" }}
+                          >
+                            🔍 Auditor View
+                          </button>
+                        </div>
+                      ) : null}
+                      {currentUser?.role === "Customer" || currentUser?.role === "Admin" ? (
+                        <div className="col-md-6">
+                          <button
+                            type="button"
+                            onClick={() => navigate("/customer")}
+                            className="btn btn-info btn-lg w-100"
+                            style={{ borderRadius: "8px", cursor: "pointer" }}
+                          >
+                            👤 Customer View
+                          </button>
+                        </div>
+                      ) : null}
                       <div className="col-md-6">
                         <button
                           type="button"

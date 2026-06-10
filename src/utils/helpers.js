@@ -9,19 +9,44 @@ export const isValidEmail = (email) => {
   return /\S+@\S+\.\S+/.test(email);
 };
 
+const loadJSON = (key, fallback) => {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (error) {
+    console.warn(`helpers: error loading ${key} from localStorage`, error);
+    return fallback;
+  }
+};
+
+const saveJSON = (key, value) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.warn(`helpers: error saving ${key} to localStorage`, error);
+  }
+};
+
 // Get all users
 export const getAllUsers = () => {
-  return JSON.parse(localStorage.getItem("users")) || [];
+  return loadJSON("users", []);
+};
+
+// Save users
+export const saveUsers = (users) => {
+  saveJSON("users", users);
 };
 
 // Get all SSN records
 export const getAllSSNRecords = () => {
-  return JSON.parse(localStorage.getItem("ssnList")) || [];
+  return loadJSON("ssnList", []);
 };
 
 // Save SSN records
 export const saveSSNRecords = (records) => {
-  localStorage.setItem("ssnList", JSON.stringify(records));
+  saveJSON("ssnList", records);
 };
 
 // Check if email is registered
@@ -40,4 +65,9 @@ export const isSSNExists = (ssn, excludeIndex = null) => {
 export const isEmailUsedInSSN = (email, excludeIndex = null) => {
   const records = getAllSSNRecords();
   return records.some((item, index) => item.email === email && index !== excludeIndex);
+};
+
+// Find a user by email
+export const findUserByEmail = (email) => {
+  return getAllUsers().find((user) => user.email === email);
 };
