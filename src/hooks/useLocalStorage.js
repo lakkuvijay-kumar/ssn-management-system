@@ -31,9 +31,20 @@ const safeWriteStorage = (key, value) => {
 
 export function useLocalStorageState(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => safeReadStorage(key, initialValue));
-
   useEffect(() => {
+    // Keep state in sync with localStorage on mount
     setStoredValue(safeReadStorage(key, initialValue));
+    // Listen for cross-tab storage changes
+    const onStorage = (e) => {
+      if (!e) return;
+      if (e.key === key) {
+        setStoredValue(safeParseJSON(e.newValue, initialValue));
+      }
+    };
+
+    window.addEventListener("storage", onStorage);
+
+    return () => window.removeEventListener("storage", onStorage);
   }, [key, initialValue]);
 
   useEffect(() => {

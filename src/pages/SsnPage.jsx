@@ -8,6 +8,10 @@ import {
   findUserByEmail,
   isSSNExists,
   isEmailUsedInSSN,
+  getAllSSNRecords,
+  getAllUsers,
+  saveUsers,
+  saveSSNRecords,
 } from "../utils/helpers";
 
 export default function SsnPage() {
@@ -30,7 +34,6 @@ export default function SsnPage() {
   const navigate = useNavigate();
 
   const PAGE_SIZE = 5;
-
 
   const addMessage = (text, type = "success") => {
     const id = Date.now() + Math.random();
@@ -86,11 +89,6 @@ export default function SsnPage() {
     if (!email) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
     else {
-      const matchedUser = findUserByEmail(email);
-      if (!matchedUser) {
-        newErrors.email = "Email is not registered. Please register first.";
-      }
-
       if (isEmailUsedInSSN(email, editIndex)) {
         newErrors.email = "Email already exists in SSN records.";
       }
@@ -111,6 +109,8 @@ export default function SsnPage() {
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      const firstKey = Object.keys(newErrors)[0];
+      addMessage(`❌ ${newErrors[firstKey]}`, "danger");
       return;
     }
 
@@ -124,16 +124,34 @@ export default function SsnPage() {
       department: department,
       recordDate: recordDate,
     };
-
+    // If the email isn't associated with a registered user, auto-register (dev convenience)
+    const matchedUser = findUserByEmail(email);
+    if (!matchedUser) {
+      try {
+        const users = getAllUsers();
+        users.push({ email, name });
+        saveUsers(users);
+        addMessage("ℹ️ Email not found — user auto-registered (dev)", "info");
+      } catch (err) {
+        console.warn("failed to auto-register user", err);
+      }
+    }
     if (editIndex !== null) {
       const updated = [...list];
       updated[editIndex] = newItem;
       setList(updated);
+      try { saveSSNRecords(updated); } catch (e) { /* ignore */ }
       setEditIndex(null);
       addMessage("✓ SSN record updated successfully!", "success");
     } else {
       const updated = [...list, newItem];
       setList(updated);
+      try { saveSSNRecords(updated); } catch (e) { /* ignore */ }
+      // Jump to last page so new record is visible
+      const lastPage = Math.max(1, Math.ceil(updated.length / PAGE_SIZE));
+      setCurrentPage(lastPage);
+      // Clear any active search so the newly added record is visible
+      setSearchTerm("");
       addMessage("✓ SSN record added successfully!", "success");
     }
 
@@ -171,9 +189,13 @@ export default function SsnPage() {
 
     const updated = list.filter((_, i) => i !== index);
     setList(updated);
+    try { saveSSNRecords(updated); } catch (e) { /* ignore */ }
     if (checkedRowId === index) {
       setCheckedRowId(null);
     }
+    // Adjust current page if deletion removed the last item on the page
+    const newPageCount = Math.max(1, Math.ceil(updated.length / PAGE_SIZE));
+    if (currentPage > newPageCount) setCurrentPage(newPageCount);
     addMessage("✓ SSN record deleted successfully!", "success");
   };
 
@@ -250,7 +272,8 @@ export default function SsnPage() {
             <h1 className="fw-bold" style={{ color: "#2c3e50", fontSize: "1.65rem" }}>SSN Management System</h1>
             <p className="text-muted" style={{ fontSize: "0.88rem" }}>Manage and track Social Security Numbers securely</p>
           </div>
-          <button
+          <div className="d-flex align-items-start gap-2">
+            <button
             type="button"
             className="btn btn-outline-secondary btn-sm"
             onClick={() => navigate("/records")}
@@ -258,6 +281,7 @@ export default function SsnPage() {
           >
             📁 View Records Page
           </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -326,6 +350,20 @@ export default function SsnPage() {
                   Clear
                 </button>
               )}
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                onClick={() => {
+                  const fresh = getAllSSNRecords();
+                  setList(fresh);
+                  setCheckedRowId(null);
+                  setCurrentPage(1);
+                  addMessage("🔄 Records refreshed", "success");
+                }}
+                style={{ borderRadius: "8px", fontSize: "0.82rem" }}
+              >
+                Refresh
+              </button>
             </div>
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="text-muted small">
