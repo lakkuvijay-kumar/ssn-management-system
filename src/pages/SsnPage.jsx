@@ -269,7 +269,7 @@ export default function SsnPage() {
         {/* Header */}
         <div className="mb-4 d-flex flex-column flex-md-row align-items-start justify-content-between gap-3">
           <div>
-            <h1 className="fw-bold" style={{ color: "#2c3e50", fontSize: "1.65rem" }}>SSN Management System</h1>
+            <h1 className="fw-bold" style={{ color: "#4f502c", fontSize: "1.65rem" }}>SSN Management System</h1>
             <p className="text-muted" style={{ fontSize: "0.88rem" }}>Manage and track Social Security Numbers securely</p>
           </div>
           <div className="d-flex align-items-start gap-2">
